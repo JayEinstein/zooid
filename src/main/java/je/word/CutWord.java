@@ -5,23 +5,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.alibaba.druid.pool.DruidDataSource;
 
 import je.jdbc.sql.MySql;
 import je.jdbc.sql.Sql;
+import je.str.dispose.Sollar;
 
 public class CutWord {
 	
 	public static void main(String[] args) {
-		try {
-			MySql.start();
-			Sql.executeUpdate("insert into user (name) values('ergou')");
-			Sql.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring2.xml");
+		Sollar bean = ctx.getBean(Sollar.class);
+		System.out.println(bean.high(10));
 	}
 
 	public void cut(String s) {
+		
 		// 根据标点符号进行细切 ，。！
 		
 		// 过滤掉括号 （），括号内容在切为一个句子

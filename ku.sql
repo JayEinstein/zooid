@@ -1,17 +1,65 @@
-select * from str_after sa, str_library sl where sa.sl_id = sl.str and sl.str = '?'
+#
+create table ``(
+    `_id` int AUTO_INCREMENT,
+    PRIMARY KEY (`_id`)
+);
 
-SELECT * FROM str_after sa WHERE sa.sl_id = '?' and sa.slsa_id = '?'
-select sl_id from str_library where str = '?'
-select sl_id from str_library where str = '?'
+# 字符组成的字符库
+# 字符出现的次数放在了字符语境类型 str_scene appear
+create table `str_library`(
+    `sl_id` int AUTO_INCREMENT,
+    `str` varchar(255), # 字符
+    `len` int, # 字符长度
+    PRIMARY KEY (`sl_id`)
+);
 
-# 查找 sa 主键
-SELECT sa.sa_id FROM str_after sa 
-WHERE
-	sa.sl_id = ( SELECT sl_id FROM str_library WHERE str = '?' ) 
-	AND sa.slsa_id = ( SELECT sl_id FROM str_library WHERE str = '?' );
+# 字符对应的语境类型
+create table `str_scene`(
+    `ss_id` int AUTO_INCREMENT,
+		`sl_id` int,
+		`scn_id` int,
+		`appear` int, # 出现的总次数
+    PRIMARY KEY (`ss_id`)
+);
 
-# 
-INSERT INTO str_after () VALUES()
+# 字符词性, 区别字符作用类型
+create table `str_tag`(
+    `st_id` int AUTO_INCREMENT,
+		`sl_id` int,
+		`wt_id` int,
+    PRIMARY KEY (`st_id`)
+);
 
+# 字符标签
+# 动词，名词，介词，状语，定语，某某短语，成语，流行语，主语，谓语，宾语
+create table `word_tag`(
+    `wt_id` int AUTO_INCREMENT,
+		`name` varchar(20),
+    PRIMARY KEY (`wt_id`)
+);
 
-select * from user where name='admin'
+# 语境类别
+# 新闻，娱乐，科学，古诗
+create table `scene`(
+    `scn_id` int AUTO_INCREMENT,
+		`name` varchar(100),
+    PRIMARY KEY (`scn_id`)
+);
+
+# 单个字符对应的下一个关联
+create table `str_after`(
+    `sa_id` int AUTO_INCREMENT,
+    `sl_id` int, # 单个字符 sl_id
+    `slsa_id` int, # 单个字符的下一个 sl_id
+    `appear` int, # 出现的次数
+		PRIMARY KEY (`sa_id`)
+);
+
+# 字符更新的时间
+# 一个字符对应很多时间，会不会爆炸呢，那就不要了
+create table `str_update`(
+    `sup_id` int AUTO_INCREMENT,
+		`sl_id` int,
+		`update_time` datetime,
+    PRIMARY KEY (`sup_id`)
+);
