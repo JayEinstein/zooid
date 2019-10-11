@@ -4,9 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 
 import je.jdbc.sql.MySql;
 import je.jdbc.sql.Sql;
+import je.project.mapper.StrLibraryMapper;
+import je.project.mapper.StrLinkMapper;
+import je.project.mapper.StrSceneMapper;
+import je.project.pojo.StrLibrary;
+import je.project.pojo.StrLink;
+import je.project.pojo.StrScene;
 
 /**
  * 
@@ -28,6 +35,16 @@ public class StrDispose {
 	public void test() {
 		entrance("红豆生南国，春来发几枝。随风潜入夜，花落知多少。");
 	}
+	
+	@Test
+	public void test2() {
+		ApplicationContext startSpring = MySql.startSpring();
+		StrLibraryMapper strLibraryMapper = startSpring.getBean(StrLibraryMapper.class);
+		StrLibrary strlib = new StrLibrary();
+		strlib.setStr("红豆");
+		List<StrLibrary> select = strLibraryMapper.select(strlib);
+		System.out.println(select.isEmpty());
+	}
 
 	/**
 	 * 
@@ -42,8 +59,8 @@ public class StrDispose {
 		char[] carr = str.toCharArray();
 		
 		List<List<Character>> section = new ArrayList<List<Character>>();
-		
 		List<Character> sentence = new ArrayList<Character>();
+		
 		for(int i = 0;i<carr.length;i++) {
 			sentence.add(carr[i]);
 			if(isChinesePunctuation(carr[i]) || i == carr.length-1) {
@@ -54,42 +71,81 @@ public class StrDispose {
 			}
 		}
 		
+		char prev;
 		char item;
-		char prve;
+		char next;
 		
 		for (List<Character> sent : section) {
-			
+			// TODO 区分复读机
 			for(int i = 0;i<sent.size();i++) {
-				String s = "";
+				StringBuilder s = new StringBuilder();
+				next = ' ';
 				item = ' ';
+				prev = ' ';
 				for(int j = i;j<sent.size();j++) {
 					
-					prve = item;
-					item = sent.get(j);
+					prev = item;
+					item = next;
+					next = sent.get(j);
 
-					s = s + item;
+					s.append(next);
 					
 					synchronized (puna) {
 						try {
-							MySql.start();
-							// 看看数据库里面有没有 字符
-							String sql1 = "select id from str_library where name = '" + s +"'";
 							
-							// 没有就 insert
-							String sql2 = "insert into str_library () values()";
+							ApplicationContext spring = MySql.startSpring();
 							
-							// 有就更新 update appear
-							Sql.executeUpdate(sql2);
+							// 看看library里面有没有字符
+							StrLibraryMapper strLibraryMapper = spring.getBean(StrLibraryMapper.class);
+							StrLibrary strlib = new StrLibrary();
+							String readStr = s.toString();
+							List<StrLibrary> strList = strLibraryMapper.selectStr(readStr);
+							if(strList.isEmpty()) { // 为空则 添加字库 library
+								strlib.setStr(readStr);
+								strlib.setLen(s.length());
+								strLibraryMapper.insert(strlib);
+							}else {
+								strlib = strList.get(strList.size()-1);
+							}
 							
-							// 如果单字符前一个不为空，则把对应关系加到 str_after
-							if(prve != ' ') {
-								String sql3 = "SELECT sa.sa_id FROM str_after sa " + 
-										"WHERE sa.sl_id = (select sl_id from str_library where str = '?') " + 
-										"and sa.slsa_id = (select sl_id from str_library where str = '?');";
-								
-								
+							// 写入字符场景
+							StrSceneMapper strSceneMapper = spring.getBean(StrSceneMapper.class);
+							StrScene scene = new StrScene();
+							scene.setSl_id(strlib.getSl_id());
+							scene.setScn_id("1");// 先固定1
+							List<StrScene> scelist = strSceneMapper.select(scene);
+							
+							if(scelist.isEmpty()) { 
+								scene.setAppear(1);
+								strSceneMapper.insert(scene);
+							} else {
+								// 不空就计数
+								StrScene strScene = scelist.get(scelist.size()-1);
+								strScene.setAppear(strScene.getAppear()+1);
+								strSceneMapper.update(strScene);
+							}
+							
+							// 单字链表
+							if(item != ' ') { // item不为空
+								StrLinkMapper strLinkMapper = spring.getBean(StrLinkMapper.class);
+								StrLibrary str_item = new StrLibrary();
+								str_item.setStr(String.valueOf(item));
+								List<StrLibrary> itemlist = strLibraryMapper.select(str_item);
+								str_item = itemlist.get(itemlist.size()-1);
+							
+								StrLink slnk = new StrLink();
+								slnk.setItem_id(str_item.getSl_id());
+								if(prev != ' ') {
+//									slnk.setPrev_id(prev_id);
+								}
+//								slnk.setNext_id(next_id);
 								
 							}
+							StrLibrary str_prev = new StrLibrary();
+							
+							
+//							slnk.setItem_id(item_id);
+//							strLinkMapper.select(slnk);
 							
 							
 						} catch (Exception e) {

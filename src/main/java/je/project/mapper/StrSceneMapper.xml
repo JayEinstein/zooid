@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="je.project.mapper.StrSceneMapper">
+   
+   <insert id="insert" useGeneratedKeys="true" keyColumn="ss_id" keyProperty="ss_id">
+   	insert into str_scene 
+   	(
+   		<if test="strsce.ss_id != null"> ss_id, </if>
+   		<if test="strsce.sl_id != null"> sl_id, </if>
+   		<if test="strsce.scn_id != null"> scn_id, </if>
+   		<if test="strsce.appear != null"> appear </if>
+   	) values(
+   		<if test="strsce.ss_id != null"> #{strsce.ss_id}, </if>
+   		<if test="strsce.sl_id != null"> #{strsce.sl_id}, </if>
+   		<if test="strsce.scn_id != null"> #{strsce.scn_id}, </if>
+   		<if test="strsce.appear != null"> #{strsce.appear} </if>
+   		<if test="strsce.appear == null"> 1 </if>
+   	)
+   </insert>
+   
+   <update id="update">
+   	update str_scene
+	   <set>
+	   		<if test="strsce.sl_id != null"> sl_id = #{strsce.ss_id}, </if>
+	   		<if test="strsce.scn_id != null"> scn_id = #{strsce.sl_id}, </if>
+	   		<if test="strsce.appear != null"> appear = #{strsce.appear} </if>
+	   </set>
+	 where ss_id = #{strsce.ss_id}
+   </update>
+   
+   <!-- TODO SOMETHING -->
+   <select id="select" resultType="je.project.pojo.StrLibrary">
+      select * from str_library
+      where 1 = 1
+      <if test="strlib.id != null"> and id = #{strlib.id} </if>
+      <if test="strlib.name != null"> and name = #{strlib.name} </if>
+      <if test="strlib.len != null"> and len = #{strlib.len} </if>
+   </select>
+   
+</mapper>

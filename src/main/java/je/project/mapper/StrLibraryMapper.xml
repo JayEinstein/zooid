@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="je.project.mapper.StrLibraryMapper">
+   
+   <insert id="insert" useGeneratedKeys="true" keyColumn="sl_id" keyProperty="sl_id">
+   	insert into str_library 
+   	(
+   		<if test="strlib.sl_id != null"> sl_id, </if>
+   		<if test="strlib.str != null"> str, </if>
+   		<if test="strlib.len != null"> len </if>
+   	) values(
+   		<if test="strlib.sl_id != null"> #{strlib.sl_id}, </if>
+   		<if test="strlib.str != null"> #{strlib.str}, </if>
+   		<if test="strlib.len != null"> #{strlib.len} </if>
+   	)
+   </insert>
+   
+   <update id="update">
+   	update str_library
+	   <set>
+	   		<if test="strlib.str != null"> str = #{strlib.str}, </if>
+	   		<if test="strlib.len != null"> len = #{strlib.len} </if>
+	   </set>
+	 where sl_id = #{strlib.sl_id}
+   </update>
+   
+   <select id="select" resultType="je.project.pojo.StrLibrary">
+      select * from str_library
+      where 1=1
+	      <if test="strlib.sl_id != null"> and sl_id = #{strlib.sl_id} </if>
+	      <if test="strlib.str != null"> and str = #{strlib.str} </if>
+	      <if test="strlib.len != null"> and len = #{strlib.len} </if>
+   </select>
+   
+   <select id="selectStr" resultType="je.project.pojo.StrLibrary">
+      select * from str_library
+      where str = #{str}
+   </select>
+   
+   <select id="selectSlId" resultType="je.project.pojo.StrLibrary">
+      select * from str_library
+      where sl_id = #{slId}
+   </select>
+   
+</mapper>

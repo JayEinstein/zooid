@@ -1,25 +1,43 @@
 package je.word;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.alibaba.druid.pool.DruidDataSource;
-
-import je.jdbc.sql.MySql;
-import je.jdbc.sql.Sql;
-import je.str.dispose.Sollar;
+import je.project.mapper.StrLibraryMapper;
+import je.project.mapper.UserMapper;
+import je.project.pojo.StrLibrary;
+import je.project.pojo.User;
 
 public class CutWord {
 	
 	public static void main(String[] args) {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring2.xml");
-		Sollar bean = ctx.getBean(Sollar.class);
-		System.out.println(bean.high(10));
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
+		SqlSessionFactory ssf = (SqlSessionFactory) ctx.getBean("sqlSessionFactory");
+		try(SqlSession sqlSession = ssf.openSession()){			
+			StrLibraryMapper strlibMapper = sqlSession.getMapper(StrLibraryMapper.class);
+			StrLibrary strlib = new StrLibrary();
+			strlib.setStr("红豆");
+//			strlib.setLen(2);
+			strlib.setSl_id("10000");
+			
+			List<StrLibrary> select = strlibMapper.select(strlib);
+			for (StrLibrary strLibrary : select) {
+				System.out.println(strLibrary);
+			}
+//			strlib.setSl_id("10002");
+//			strlib.setStr("形态");
+//			strlib.setLen(2);
+//			Integer insert = strlibMapper.insert(strlib);
+//			System.out.println(insert);
+//			strlibMapper.update(strlib);
+//			System.out.println(strlib.getSl_id());
+		}
 	}
 
 	public void cut(String s) {

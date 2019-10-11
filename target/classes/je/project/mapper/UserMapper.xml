@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mapper:根标签，namespace：命名空间，随便写，一般保证命名空间唯一 -->
+<mapper namespace="je.project.mapper.UserMapper">
+   <!-- statement，内容：sql语句。id：唯一标识，随便写，在同一个命名空间下保持唯一
+      resultType：sql语句查询结果集的封装类型,tb_user即为数据库中的表
+    -->
+   <select id="getAllUser" resultType="je.project.pojo.User">
+      select id,name from user
+   </select>
+   
+   <select id="getUsers" resultType="je.project.pojo.User" parameterType="je.project.pojo.User">
+      select id,name from user where name = #{user.name}
+      <if test="user.id != null">
+       and id = #{user.id}
+      </if>
+   </select>
+</mapper>

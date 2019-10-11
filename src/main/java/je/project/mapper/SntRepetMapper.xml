@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="je.project.mapper.SntRepetMapper">
+   
+   <insert id="insert" useGeneratedKeys="true" keyColumn="sr_id" keyProperty="sr_id">
+   	insert into snt_repet 
+   	(
+   		<if test="repet.sr_id != null"> sr_id, </if>
+   		<if test="repet.ss_id != null"> ss_id, </if>
+   		<if test="appear != null"> appear </if>
+   	) values(
+   		<if test="repet.sr_id != null"> #{repet.sr_id}, </if>
+   		<if test="repet.ss_id != null"> #{repet.ss_id}, </if>
+   		<if test="repet.appear != null"> #{repet.appear} </if>
+   		<if test="repet.appear == null"> 1 </if>
+   	)
+   </insert>
+   
+   <update id="update">
+   	update snt_repet
+	   <set>
+	   		<if test="repet.sr_id != null">ss_id = #{repet.sr_id}, </if>
+	   		<if test="repet.appear != null">appear = #{repet.appear} </if>
+	   </set>
+	 where sr_id = #{repet.sr_id}
+   </update>
+   
+   <!-- TODO SOMETHING -->
+   <select id="select" resultType="je.project.pojo.StrLibrary">
+      select * from snt_repet
+      where 1 = 1
+      <if test="strlib.id != null"> and id = #{strlib.id} </if>
+      <if test="strlib.name != null"> and name = #{strlib.name} </if>
+      <if test="strlib.len != null"> and len = #{strlib.len} </if>
+   </select>
+   
+</mapper>
