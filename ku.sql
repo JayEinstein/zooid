@@ -13,6 +13,24 @@ create table `str_library`(
     PRIMARY KEY (`sl_id`)
 );
 
+# 重复出现的字符串，记录语境重复
+# 重复记录的只是一个整个句子，也就是复读机
+create table `snt_repet`(
+    `sr_id` int AUTO_INCREMENT,
+		`ss_id` int, # 语境id进行计数
+		`appear` int,
+    PRIMARY KEY (`sr_id`)
+);
+
+# 重复出现的字符串，记录语境重复
+# 重复记录的只是一个整个句子，也就是复读机
+create table `char_repet`(
+    `cr_id` int AUTO_INCREMENT,
+		`slnk_id` int, # 语境id进行计数
+		`appear` int,
+    PRIMARY KEY (`cr_id`)
+);
+
 # 字符对应的语境类型
 create table `str_scene`(
     `ss_id` int AUTO_INCREMENT,
@@ -47,12 +65,33 @@ create table `scene`(
 );
 
 # 单个字符对应的下一个关联
-create table `str_after`(
-    `sa_id` int AUTO_INCREMENT,
-    `sl_id` int, # 单个字符 sl_id
-    `slsa_id` int, # 单个字符的下一个 sl_id
+create table `str_next`(
+    `sn_id` int AUTO_INCREMENT,
+    `item_id` int, # 单个字符 str_scene
+    `next_id` int, # 单个字符的下一个 sl_id
     `appear` int, # 出现的次数
-		PRIMARY KEY (`sa_id`)
+		PRIMARY KEY (`sn_id`)
+);
+
+# 单个字符对应的上一个关联
+create table `str_prev`(
+    `sp_id` int AUTO_INCREMENT,
+    `item_id` int, # 单个字符 sl_id
+    `prev_id` int, # 单个字符的上一个 sl_id
+    `appear` int, # 出现的次数
+		PRIMARY KEY (`sp_id`)
+);
+
+# 字符双链
+# 改存场景字符
+create table `str_link`(
+    `slnk_id` int AUTO_INCREMENT,
+		`scn_id` int, # 加上场景
+    `item_id` int, # 单个字符 sl_id
+    `next_id` int, # 字符的下一个 sl_id
+		`prev_id` int, # 字符的上一个 sl_id
+    `appear` int, # 出现的次数
+		PRIMARY KEY (`slnk_id`)
 );
 
 # 字符更新的时间
