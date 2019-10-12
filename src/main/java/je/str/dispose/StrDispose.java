@@ -35,10 +35,10 @@ public class StrDispose {
 	private static String puna = "。？！，、；：「」『』‘’“”（）〔〕【】—…–．《》〈〉  ";
 	private String scn_id = "1";
 	
+	
 	@Test
 	public void test() {
-		entrance("爷爷年轻的时候可是超强的哦。");
-		
+		entrance("马冬梅你妈妈找你");
 	}
 	
 	@Test
@@ -76,6 +76,7 @@ public class StrDispose {
 		}
 		
 		ApplicationContext spring = MySql.startSpring();
+		
 		for (List<Character> sent : section) {
 			String outPuna = outPuna(sent);
 			StrSceneMapper ssMapper = spring.getBean(StrSceneMapper.class);
@@ -226,6 +227,11 @@ public class StrDispose {
 	
 	}
 	
+	/**
+	 * 字链复读机
+	 * @param spring
+	 * @param node
+	 */
 	public void entryLinkRepet(ApplicationContext spring, LinkNode node) {
 		StrLink slk = new StrLink();
 		slk.setItem_id(node.item);
@@ -294,16 +300,6 @@ public class StrDispose {
 			}
 		}
 		return false;
-	}
-	
-	class Node{
-		char item;
-		char prev;
-		
-        Node(char element) {
-            this.item = element;
-            this.prev = item;
-        }
 	}
 	
 }

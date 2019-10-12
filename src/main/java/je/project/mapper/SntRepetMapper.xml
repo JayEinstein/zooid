@@ -29,8 +29,8 @@
    <select id="select" resultType="je.project.pojo.SntRepet">
       select * from snt_repet
       where 1 = 1
-   		<if test="arg.sr_id != null"> and sr_id = #{arg.sr_id}, </if>
-   		<if test="arg.ss_id != null"> and ss_id = #{arg.ss_id}, </if>
+   		<if test="arg.sr_id != null"> and sr_id = #{arg.sr_id} </if>
+   		<if test="arg.ss_id != null"> and ss_id = #{arg.ss_id} </if>
    		<if test="arg.appear != null"> and appear = #{arg.appear} </if>
    </select>
    

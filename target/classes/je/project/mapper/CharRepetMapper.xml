@@ -30,8 +30,8 @@
    <select id="select" resultType="je.project.pojo.SntRepet">
       select * from char_repet
       where 1 = 1
-   		<if test="repet.cr_id != null"> and cr_id = #{repet.cr_id}, </if>
-   		<if test="repet.slnk_id != null"> and slnk_id = #{repet.slnk_id}, </if>
+   		<if test="repet.cr_id != null"> and cr_id = #{repet.cr_id} </if>
+   		<if test="repet.slnk_id != null"> and slnk_id = #{repet.slnk_id} </if>
    		<if test="repet.appear != null"> and appear = #{repet.appear} </if>
    </select>
    
