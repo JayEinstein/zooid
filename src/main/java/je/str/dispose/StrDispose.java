@@ -7,10 +7,11 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
 import je.jdbc.sql.MySql;
-import je.jdbc.sql.Sql;
+import je.project.mapper.SntRepetMapper;
 import je.project.mapper.StrLibraryMapper;
 import je.project.mapper.StrLinkMapper;
 import je.project.mapper.StrSceneMapper;
+import je.project.pojo.SntRepet;
 import je.project.pojo.StrLibrary;
 import je.project.pojo.StrLink;
 import je.project.pojo.StrScene;
@@ -29,11 +30,13 @@ import je.project.pojo.StrScene;
  *
  */
 public class StrDispose {
-	private static String puna = "。？！，、；：「」『』‘’“”（）〔〕【】—…–．《》〈〉";
+	private static String puna = "。？！，、；：「」『』‘’“”（）〔〕【】—…–．《》〈〉  ";
+	private String scn_id = "1";
 	
 	@Test
 	public void test() {
-		entrance("红豆生南国，春来发几枝。随风潜入夜，花落知多少。");
+		entrance("爷爷年轻的时候可是超强的哦。");
+		
 	}
 	
 	@Test
@@ -71,102 +74,192 @@ public class StrDispose {
 			}
 		}
 		
-		char prev;
-		char item;
-		char next;
+		
+		
+		ApplicationContext spring = MySql.startSpring();
 		
 		for (List<Character> sent : section) {
-			// TODO 区分复读机
-			for(int i = 0;i<sent.size();i++) {
-				StringBuilder s = new StringBuilder();
-				next = ' ';
-				item = ' ';
-				prev = ' ';
-				for(int j = i;j<sent.size();j++) {
-					
-					prev = item;
-					item = next;
-					next = sent.get(j);
-
-					s.append(next);
-					
-					synchronized (puna) {
-						try {
-							
-							ApplicationContext spring = MySql.startSpring();
-							
-							// 看看library里面有没有字符
-							StrLibraryMapper strLibraryMapper = spring.getBean(StrLibraryMapper.class);
-							StrLibrary strlib = new StrLibrary();
-							String readStr = s.toString();
-							List<StrLibrary> strList = strLibraryMapper.selectStr(readStr);
-							if(strList.isEmpty()) { // 为空则 添加字库 library
-								strlib.setStr(readStr);
-								strlib.setLen(s.length());
-								strLibraryMapper.insert(strlib);
-							}else {
-								strlib = strList.get(strList.size()-1);
-							}
-							
-							// 写入字符场景
-							StrSceneMapper strSceneMapper = spring.getBean(StrSceneMapper.class);
-							StrScene scene = new StrScene();
-							scene.setSl_id(strlib.getSl_id());
-							scene.setScn_id("1");// 先固定1
-							List<StrScene> scelist = strSceneMapper.select(scene);
-							
-							if(scelist.isEmpty()) { 
-								scene.setAppear(1);
-								strSceneMapper.insert(scene);
-							} else {
-								// 不空就计数
-								StrScene strScene = scelist.get(scelist.size()-1);
-								strScene.setAppear(strScene.getAppear()+1);
-								strSceneMapper.update(strScene);
-							}
-							
-							// 单字链表
-							if(item != ' ') { // item不为空
-								StrLinkMapper strLinkMapper = spring.getBean(StrLinkMapper.class);
-								StrLibrary str_item = new StrLibrary();
-								str_item.setStr(String.valueOf(item));
-								List<StrLibrary> itemlist = strLibraryMapper.select(str_item);
-								str_item = itemlist.get(itemlist.size()-1);
-							
-								StrLink slnk = new StrLink();
-								slnk.setItem_id(str_item.getSl_id());
-								if(prev != ' ') {
-//									slnk.setPrev_id(prev_id);
+			
+			String noutPuna = outPuna(sent);
+			StrSceneMapper ssMapper = spring.getBean(StrSceneMapper.class);
+			StrScene sscn = ssMapper.selectAlibrary(noutPuna);
+			
+			if(sscn != null) {
+				// 复读机
+				SntRepetMapper sntRepetMapper = spring.getBean(SntRepetMapper.class);
+				SntRepet sr = new SntRepet();
+				sr.setSs_id(sscn.getSs_id());
+				List<SntRepet> srL = sntRepetMapper.select(sr);
+				if(srL.isEmpty()) {
+					sr.setAppear(1);
+					sntRepetMapper.insert(sr);
+				}else {
+					sr = srL.get(srL.size()-1);
+					sr.setAppear(sr.getAppear()+1);
+				}
+			}else {
+				for(int i = 0;i<sent.size();i++) {
+					StringBuilder s = new StringBuilder();
+					char item = ' ';
+					LinkNode node = new LinkNode(null, null, null);
+					for(int j = i;j<sent.size();j++) {
+						item = sent.get(j);
+						s.append(item);
+						synchronized (puna) {
+							try {
+								// 检查字库
+								try {
+									StrLibrary strlib = entryLibrary(spring,s.toString());
+									// 写记忆
+									entryVoc(spring, strlib);
+								}catch(Exception e) {
+									e.printStackTrace();
 								}
-//								slnk.setNext_id(next_id);
 								
+								try {
+									// 拼字链
+									if(i == 0) { // 只链最长的
+										StrLibrary nextStr = entryLibrary(spring,String.valueOf(item));
+										node.putNode(nextStr.getSl_id());
+										entryLink(spring, node);
+										if(j == sent.size()-1) {
+											node.putNode(null);
+											entryLink(spring, node);
+										}
+									}
+								}catch(Exception e) {
+									e.printStackTrace();
+								}
+								
+
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-							StrLibrary str_prev = new StrLibrary();
-							
-							
-//							slnk.setItem_id(item_id);
-//							strLinkMapper.select(slnk);
-							
-							
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 						
 					}
 				}
+				
 			}
+			
 			
 		}
 		
 		
 	}
 	
-
+	/**
+	 * 写字库
+	 * @param spring
+	 * @param s
+	 * @return
+	 */
+	public StrLibrary entryLibrary(ApplicationContext spring, String s) {
+		// ## 添字库
+		// 看看library里面有没有字符
+		StrLibraryMapper strLibraryMapper = spring.getBean(StrLibraryMapper.class);
+		StrLibrary strlib = new StrLibrary();
+		String readStr = s.toString();
+		strlib.setStr(readStr);
+		List<StrLibrary> strList = strLibraryMapper.select(strlib);
+		if(strList.isEmpty()) { // 为空则 添加字库 library
+			strlib.setLen(s.length());
+			strLibraryMapper.insert(strlib);
+		}else {
+			strlib = strList.get(strList.size()-1);
+		}
+		return strlib;
+	}
 	
-	public void cut(List<List<Character>> section) {
-		for (List<Character> sentence : section) {
+	/**
+	 * 写经验
+	 * @param spring
+	 * @param strlib
+	 */
+	public void entryVoc(ApplicationContext spring,	StrLibrary strlib) {
+		// ## 记词汇
+		// 写入字符场景
+		StrSceneMapper strSceneMapper = spring.getBean(StrSceneMapper.class);
+		StrScene scene = new StrScene();
+		scene.setSl_id(strlib.getSl_id());
+		scene.setScn_id(scn_id);// 先固定1
+		List<StrScene> scelist = strSceneMapper.select(scene);
+		
+		if(scelist.isEmpty()) {
+			scene.setAppear(1);
+			strSceneMapper.insert(scene);
+		} else {
+			// 不空就计数
+			StrScene strScene = scelist.get(scelist.size()-1);
+			strScene.setAppear(strScene.getAppear()+1);
+			strSceneMapper.update(strScene);
+		}
+	}
+	
+	/**
+	 * 拼字链
+	 * @param spring
+	 * @param node
+	 */
+	public void entryLink(ApplicationContext spring, LinkNode node) {
+		// ## 加字链
+		
+		if(node.item != null) {
+			StrLink itemNode = new StrLink();
+			itemNode.setItem_id(node.item);
+			itemNode.setPrev_id(node.prev);
+			itemNode.setNext_id(node.next);
+		
+			StrLinkMapper strLinkMapper = spring.getBean(StrLinkMapper.class);
+			List<StrLink> linklist = strLinkMapper.select(itemNode);
+			if(linklist.isEmpty()) {
+				itemNode.setScn_id(scn_id);
+				itemNode.setAppear(1);
+				strLinkMapper.insert(itemNode);
+			}else {
+				StrLink strLink = linklist.get(linklist.size()-1);
+				strLink.setAppear(strLink.getAppear()+1);
+				strLinkMapper.update(strLink);
+			}
 			
 		}
+	
+	}
+	
+	private static class LinkNode{
+		String item;
+		String next;
+		String prev;
+		
+		LinkNode(String prev, String item, String next){
+			this.prev = prev;
+			this.item = item;
+			this.next = next;
+		}
+		
+		public void putNode(String node){
+			this.prev = this.item;
+			this.item = this.next;
+			this.next = node;
+		}
+	}
+	
+	public String outPuna(List<Character> list) {
+		StringBuffer sb = new StringBuffer();
+		for (Character c : list) {
+			if(!isChinesePunctuation(c)) {
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+	
+	public String noutPuna(List<Character> list) {
+		StringBuffer sb = new StringBuffer();
+		for (Character c : list) {
+			sb.append(c);
+		}
+		return sb.toString();
 	}
 	
 	private static final boolean isChinesePunctuation(char c) {

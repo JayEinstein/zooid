@@ -7,36 +7,41 @@
    <insert id="insert" useGeneratedKeys="true" keyColumn="ss_id" keyProperty="ss_id">
    	insert into str_scene 
    	(
-   		<if test="strsce.ss_id != null"> ss_id, </if>
-   		<if test="strsce.sl_id != null"> sl_id, </if>
-   		<if test="strsce.scn_id != null"> scn_id, </if>
-   		<if test="strsce.appear != null"> appear </if>
+   		<if test="arg.ss_id != null"> ss_id, </if>
+   		<if test="arg.sl_id != null"> sl_id, </if>
+   		<if test="arg.scn_id != null"> scn_id, </if>
+   		<if test="arg.appear != null"> appear </if>
    	) values(
-   		<if test="strsce.ss_id != null"> #{strsce.ss_id}, </if>
-   		<if test="strsce.sl_id != null"> #{strsce.sl_id}, </if>
-   		<if test="strsce.scn_id != null"> #{strsce.scn_id}, </if>
-   		<if test="strsce.appear != null"> #{strsce.appear} </if>
-   		<if test="strsce.appear == null"> 1 </if>
+   		<if test="arg.ss_id != null"> #{arg.ss_id}, </if>
+   		<if test="arg.sl_id != null"> #{arg.sl_id}, </if>
+   		<if test="arg.scn_id != null"> #{arg.scn_id}, </if>
+   		<if test="arg.appear != null"> #{arg.appear} </if>
+   		<if test="arg.appear == null"> 1 </if>
    	)
    </insert>
    
    <update id="update">
    	update str_scene
 	   <set>
-	   		<if test="strsce.sl_id != null"> sl_id = #{strsce.ss_id}, </if>
-	   		<if test="strsce.scn_id != null"> scn_id = #{strsce.sl_id}, </if>
-	   		<if test="strsce.appear != null"> appear = #{strsce.appear} </if>
+	   		<if test="arg.sl_id != null"> sl_id = #{arg.sl_id}, </if>
+	   		<if test="arg.scn_id != null"> scn_id = #{arg.scn_id}, </if>
+	   		<if test="arg.appear != null"> appear = #{arg.appear} </if>
 	   </set>
-	 where ss_id = #{strsce.ss_id}
+	 where ss_id = #{arg.ss_id}
    </update>
    
-   <!-- TODO SOMETHING -->
-   <select id="select" resultType="je.project.pojo.StrLibrary">
-      select * from str_library
+   <select id="select" resultType="je.project.pojo.StrScene">
+      select * from str_scene
       where 1 = 1
-      <if test="strlib.id != null"> and id = #{strlib.id} </if>
-      <if test="strlib.name != null"> and name = #{strlib.name} </if>
-      <if test="strlib.len != null"> and len = #{strlib.len} </if>
+   		<if test="arg.ss_id != null"> and ss_id = #{arg.ss_id} </if>
+   		<if test="arg.sl_id != null"> and sl_id = #{arg.sl_id} </if>
+   		<if test="arg.scn_id != null"> and scn_id = #{arg.scn_id} </if>
+   		<if test="arg.appear != null"> and appear = #{arg.appear} </if>
+   </select>
+   
+   <select id="selectAlibrary" resultType="je.project.pojo.StrScene">
+      select ss.ss_id,ss.sl_id,ss.scn_id,ss.appear from str_scene ss, str_library sl
+      where ss.sl_id = sl.sl_id and sl.str = #{arg}
    </select>
    
 </mapper>

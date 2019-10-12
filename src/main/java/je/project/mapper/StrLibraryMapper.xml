@@ -39,6 +39,11 @@
       where str = #{str}
    </select>
    
+   <select id="selectStrOfList" resultType="je.project.pojo.StrLibrary">
+      select * from str_library
+      where str = #{str}
+   </select>
+   
    <select id="selectSlId" resultType="je.project.pojo.StrLibrary">
       select * from str_library
       where sl_id = #{slId}

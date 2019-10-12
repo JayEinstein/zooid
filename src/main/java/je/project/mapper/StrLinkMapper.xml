@@ -7,59 +7,58 @@
    <insert id="insert" useGeneratedKeys="true" keyColumn="slnk_id" keyProperty="slnk_id">
    	insert into str_link 
    	(
-   		<if test="link.slnk_id != null"> slnk_id, </if>
-   		<if test="link.scn_id != null"> scn_id, </if>
-   		<if test="link.item_id != null"> item_id, </if>
-   		<if test="link.next_id != null"> next_id, </if>
-   		<if test="link.prev_id != null"> prev_id, </if>
-   		<if test="link.appear != null"> appear </if>
+   		<if test="arg.slnk_id != null"> slnk_id, </if>
+   		<if test="arg.scn_id != null"> scn_id, </if>
+   		<if test="arg.item_id != null"> item_id, </if>
+   		<if test="arg.next_id != null"> next_id, </if>
+   		<if test="arg.prev_id != null"> prev_id, </if>
+   		<if test="arg.appear != null"> appear </if>
    	) values(
-   		<if test="link.slnk_id != null"> #{link.slnk_id}, </if>
-   		<if test="link.scn_id != null"> #{link.scn_id}, </if>
-   		<if test="link.item_id != null"> #{link.item_id}, </if>
-   		<if test="link.next_id != null"> #{link.next_id}, </if>
-   		<if test="link.prev_id != null"> #{link.prev_id}, </if>
-   		<if test="link.appear != null"> #{link.appear} </if>
-   		<if test="link.appear == null"> 1 </if>
+   		<if test="arg.slnk_id != null"> #{arg.slnk_id}, </if>
+   		<if test="arg.scn_id != null"> #{arg.scn_id}, </if>
+   		<if test="arg.item_id != null"> #{arg.item_id}, </if>
+   		<if test="arg.next_id != null"> #{arg.next_id}, </if>
+   		<if test="arg.prev_id != null"> #{arg.prev_id}, </if>
+   		<if test="arg.appear != null"> #{arg.appear} </if>
+   		<if test="arg.appear == null"> 1 </if>
    	)
    </insert>
    
    <update id="update">
    	update str_link
 	   <set>
-   		<if test="link.item_id != null"> item_id = #{link.item_id}, </if>
-   		<if test="link.scn_id != null"> scn_id = #{link.scn_id}, </if>
-   		<if test="link.next_id != null"> next_id = #{link.next_id}, </if>
-   		<if test="link.prev_id != null"> prev_id = #{link.prev_id}, </if>
-   		<if test="link.appear != null"> appear = #{link.appear} </if>
+   		<if test="arg.item_id != null"> item_id = #{arg.item_id}, </if>
+   		<if test="arg.scn_id != null"> scn_id = #{arg.scn_id}, </if>
+   		<if test="arg.next_id != null"> next_id = #{arg.next_id}, </if>
+   		<if test="arg.prev_id != null"> prev_id = #{arg.prev_id}, </if>
+   		<if test="arg.appear != null"> appear = #{arg.appear} </if>
 	   </set>
-	 where slnk_id = #{link.slnk_id}
+	 where slnk_id = #{arg.slnk_id}
    </update>
    
-   <!-- TODO SOMETHING -->
    <select id="select" resultType="je.project.pojo.StrLink">
       select * from str_link
       where 1 = 1
-      <if test="link.slnk_id != null"> and slnk_id = #{link.slnk_id} </if>
-      <if test="link.scn_id  != null"> and scn_id  = #{link.scn_id} </if>
-      <if test="link.item_id != null"> and item_id = #{link.item_id} </if>
-      <if test="link.next_id != null"> and next_id = #{link.next_id} </if>
-      <if test="link.prev_id != null"> and prev_id = #{link.prev_id} </if>
-      <if test="link.appear  != null"> and appear  = #{link.appear} </if>
+      <if test="arg.slnk_id != null"> and slnk_id = #{arg.slnk_id} </if>
+      <if test="arg.scn_id  != null"> and scn_id  = #{arg.scn_id}  </if>
+      <if test="arg.item_id != null"> and item_id = #{arg.item_id} </if>
+      <if test="arg.next_id != null"> and next_id = #{arg.next_id} </if>
+      <if test="arg.prev_id != null"> and prev_id = #{arg.prev_id} </if>
+      <if test="arg.appear  != null"> and appear  = #{arg.appear}  </if>
       
-      <if test="link.slnk_id == 'isnull'"> and slnk_id is null </if>
-      <if test="link.scn_id  == 'isnull'"> and scn_id  is null </if>
-      <if test="link.item_id == 'isnull'"> and item_id is null  </if>
-      <if test="link.next_id == 'isnull'"> and next_id is null </if>
-      <if test="link.prev_id == 'isnull'"> and prev_id is null </if>
-      <if test="link.appear  == 'isnull'"> and appear  is null </if>
+      <if test="arg.slnk_id == 'isnull'"> and slnk_id is null </if>
+      <if test="arg.scn_id  == 'isnull'"> and scn_id  is null </if>
+      <if test="arg.item_id == 'isnull'"> and item_id is null </if>
+      <if test="arg.next_id == 'isnull'"> and next_id is null </if>
+      <if test="arg.prev_id == 'isnull'"> and prev_id is null </if>
+      <if test="arg.appear  == 'isnull'"> and appear  is null </if>
       
-      <if test="link.slnk_id == 'isnotnull'"> and slnk_id is not null </if>
-      <if test="link.scn_id  == 'isnotnull'"> and scn_id  is not null </if>
-      <if test="link.item_id == 'isnotnull'"> and item_id is not null </if>
-      <if test="link.next_id == 'isnotnull'"> and next_id is not null </if>
-      <if test="link.prev_id == 'isnotnull'"> and prev_id is not null </if>
-      <if test="link.appear  == 'isnotnull'"> and appear  is not null </if>
+      <if test="arg.slnk_id == 'isnotnull'"> and slnk_id is not null </if>
+      <if test="arg.scn_id  == 'isnotnull'"> and scn_id  is not null </if>
+      <if test="arg.item_id == 'isnotnull'"> and item_id is not null </if>
+      <if test="arg.next_id == 'isnotnull'"> and next_id is not null </if>
+      <if test="arg.prev_id == 'isnotnull'"> and prev_id is not null </if>
+      <if test="arg.appear  == 'isnotnull'"> and appear  is not null </if>
       
    </select>
    

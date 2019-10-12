@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import je.project.pojo.StrLink;
 
 public interface StrLinkMapper {
-	String name = "link";
+	String name = "arg";
 	
 	public Integer insert(@Param(name) StrLink link);
 	

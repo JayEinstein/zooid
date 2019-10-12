@@ -4,15 +4,15 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
-import je.project.pojo.CharRepet;
+import je.project.pojo.SntRepet;
 
 public interface SntRepetMapper {
-	String name = "repet";
+	String name = "arg";
 	
-	public Integer insert(@Param(name) CharRepet repet);
+	public Integer insert(@Param(name) SntRepet repet);
 	
-	public void update(@Param(name) CharRepet repet);
+	public void update(@Param(name) SntRepet repet);
 	
-	public List<CharRepet> select(@Param(name) CharRepet repet);
+	public List<SntRepet> select(@Param(name) SntRepet repet);
 	
 }

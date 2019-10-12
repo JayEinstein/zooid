@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="je.project.mapper.CharRepetMapper">
+   
+   <insert id="insert" useGeneratedKeys="true" keyColumn="cr_id" keyProperty="cr_id">
+   	insert into char_repet 
+   	(
+   		<if test="repet.cr_id != null"> cr_id, </if>
+   		<if test="repet.slnk_id != null"> slnk_id, </if>
+   		<if test="repet.appear != null"> appear </if>
+   	) values(
+   		<if test="repet.cr_id != null"> #{repet.cr_id}, </if>
+   		<if test="repet.slnk_id != null"> #{repet.slnk_id}, </if>
+   		<if test="repet.appear != null"> #{repet.appear} </if>
+   		<if test="repet.appear == null"> 1 </if>
+   	)
+   </insert>
+   
+   <update id="update">
+   	update char_repet
+	   <set>
+	   		<if test="repet.slnk_id != null">ss_id = #{repet.slnk_id}, </if>
+	   		<if test="repet.appear != null">appear = #{repet.appear} </if>
+	   </set>
+	 where cr_id = #{repet.cr_id}
+   </update>
+   
+   <select id="select" resultType="je.project.pojo.SntRepet">
+      select * from char_repet
+      where 1 = 1
+   		<if test="repet.cr_id != null"> and cr_id = #{repet.cr_id}, </if>
+   		<if test="repet.slnk_id != null"> and slnk_id = #{repet.slnk_id}, </if>
+   		<if test="repet.appear != null"> and appear = #{repet.appear} </if>
+   </select>
+   
+</mapper>

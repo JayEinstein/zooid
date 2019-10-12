@@ -7,33 +7,31 @@
    <insert id="insert" useGeneratedKeys="true" keyColumn="sr_id" keyProperty="sr_id">
    	insert into snt_repet 
    	(
-   		<if test="repet.sr_id != null"> sr_id, </if>
-   		<if test="repet.ss_id != null"> ss_id, </if>
-   		<if test="appear != null"> appear </if>
+   		<if test="arg.sr_id != null"> sr_id, </if>
+   		<if test="arg.ss_id != null"> ss_id, </if>
+   		<if test="arg.appear != null"> appear </if>
    	) values(
-   		<if test="repet.sr_id != null"> #{repet.sr_id}, </if>
-   		<if test="repet.ss_id != null"> #{repet.ss_id}, </if>
-   		<if test="repet.appear != null"> #{repet.appear} </if>
-   		<if test="repet.appear == null"> 1 </if>
+   		<if test="arg.sr_id != null"> #{arg.sr_id}, </if>
+   		<if test="arg.ss_id != null"> #{arg.ss_id}, </if>
+   		<if test="arg.appear != null"> #{arg.appear} </if>
    	)
    </insert>
    
    <update id="update">
    	update snt_repet
 	   <set>
-	   		<if test="repet.sr_id != null">ss_id = #{repet.sr_id}, </if>
-	   		<if test="repet.appear != null">appear = #{repet.appear} </if>
+	   		<if test="arg.sr_id != null">ss_id = #{arg.sr_id}, </if>
+	   		<if test="arg.appear != null">appear = #{arg.appear} </if>
 	   </set>
-	 where sr_id = #{repet.sr_id}
+	 where sr_id = #{arg.sr_id}
    </update>
    
-   <!-- TODO SOMETHING -->
-   <select id="select" resultType="je.project.pojo.StrLibrary">
+   <select id="select" resultType="je.project.pojo.SntRepet">
       select * from snt_repet
       where 1 = 1
-      <if test="strlib.id != null"> and id = #{strlib.id} </if>
-      <if test="strlib.name != null"> and name = #{strlib.name} </if>
-      <if test="strlib.len != null"> and len = #{strlib.len} </if>
+   		<if test="arg.sr_id != null"> and sr_id = #{arg.sr_id}, </if>
+   		<if test="arg.ss_id != null"> and ss_id = #{arg.ss_id}, </if>
+   		<if test="arg.appear != null"> and appear = #{arg.appear} </if>
    </select>
    
 </mapper>

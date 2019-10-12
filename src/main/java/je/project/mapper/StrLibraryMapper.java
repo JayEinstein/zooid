@@ -15,8 +15,11 @@ public interface StrLibraryMapper {
 	
 	public List<StrLibrary> select(@Param(name) StrLibrary strlib);
 	
-	public List<StrLibrary> selectStr(String str);
+	public StrLibrary selectStr(String str);
 	
-	public List<StrLibrary> selectSlId(String slid);
+	@Deprecated
+	public List<StrLibrary> selectStrOfList(String str);
+	
+	public StrLibrary selectSlId(String slid);
 	
 }
