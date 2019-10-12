@@ -7,10 +7,12 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
 import je.jdbc.sql.MySql;
+import je.project.mapper.CharRepetMapper;
 import je.project.mapper.SntRepetMapper;
 import je.project.mapper.StrLibraryMapper;
 import je.project.mapper.StrLinkMapper;
 import je.project.mapper.StrSceneMapper;
+import je.project.pojo.CharRepet;
 import je.project.pojo.SntRepet;
 import je.project.pojo.StrLibrary;
 import je.project.pojo.StrLink;
@@ -60,9 +62,8 @@ public class StrDispose {
 	public void entrance(String str) {
 		
 		char[] carr = str.toCharArray();
-		
-		List<List<Character>> section = new ArrayList<List<Character>>();
 		List<Character> sentence = new ArrayList<Character>();
+		List<List<Character>> section = new ArrayList<List<Character>>();
 		
 		for(int i = 0;i<carr.length;i++) {
 			sentence.add(carr[i]);
@@ -74,79 +75,59 @@ public class StrDispose {
 			}
 		}
 		
-		
-		
 		ApplicationContext spring = MySql.startSpring();
-		
 		for (List<Character> sent : section) {
-			
-			String noutPuna = outPuna(sent);
+			String outPuna = outPuna(sent);
 			StrSceneMapper ssMapper = spring.getBean(StrSceneMapper.class);
-			StrScene sscn = ssMapper.selectAlibrary(noutPuna);
+			StrScene sscn = ssMapper.selectAlibrary(outPuna);
 			
 			if(sscn != null) {
-				// 复读机
-				SntRepetMapper sntRepetMapper = spring.getBean(SntRepetMapper.class);
-				SntRepet sr = new SntRepet();
-				sr.setSs_id(sscn.getSs_id());
-				List<SntRepet> srL = sntRepetMapper.select(sr);
-				if(srL.isEmpty()) {
-					sr.setAppear(1);
-					sntRepetMapper.insert(sr);
-				}else {
-					sr = srL.get(srL.size()-1);
-					sr.setAppear(sr.getAppear()+1);
-				}
-			}else {
+				LinkNode node = new LinkNode(null,null,null); 
 				for(int i = 0;i<sent.size();i++) {
-					StringBuilder s = new StringBuilder();
-					char item = ' ';
-					LinkNode node = new LinkNode(null, null, null);
-					for(int j = i;j<sent.size();j++) {
-						item = sent.get(j);
-						s.append(item);
-						synchronized (puna) {
-							try {
-								// 检查字库
-								try {
-									StrLibrary strlib = entryLibrary(spring,s.toString());
-									// 写记忆
-									entryVoc(spring, strlib);
-								}catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-								try {
-									// 拼字链
-									if(i == 0) { // 只链最长的
-										StrLibrary nextStr = entryLibrary(spring,String.valueOf(item));
-										node.putNode(nextStr.getSl_id());
-										entryLink(spring, node);
-										if(j == sent.size()-1) {
-											node.putNode(null);
-											entryLink(spring, node);
-										}
-									}
-								}catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+					// 取单字
+					StrLibraryMapper strLibraryMapper = spring.getBean(StrLibraryMapper.class);
+					StrLibrary strlib = strLibraryMapper.selectStr(String.valueOf(sent.get(i)));
+					node.putNode(strlib.getSl_id());
+					if(node.item != null) {
+						entryLinkRepet(spring, node);
+						if(i == sent.size()-1) {
+							node.putNode(null);
+							entryLinkRepet(spring, node);
 						}
-						
+					}
+					StringBuilder sb = new StringBuilder();
+					for(int j = i;j<sent.size();j++) {
+						// 写记忆
+						sb.append(sent.get(j));
+						StrSceneMapper strSceneMapper = spring.getBean(StrSceneMapper.class);
+						StrScene sscen = strSceneMapper.selectAlibrary(sb.toString());
+						entryVocRepet(spring, sscen);
 					}
 				}
-				
+			}else {
+				LinkNode node = new LinkNode(null, null, null);
+				for(int i = 0;i<sent.size();i++) {
+					StrLibrary slib = entryLibrary(spring,String.valueOf(sent.get(i)));
+					node.putNode(slib.getSl_id());
+					if(node.item != null) {
+						entryLink(spring, node);
+						if(i == sent.size()-1) {
+							node.putNode(null);
+							entryLink(spring, node);
+						}
+					}
+					
+					StringBuilder sb = new StringBuilder();
+					for(int j = i;j<sent.size();j++) {
+						sb.append(sent.get(j));
+						StrLibrary strlib = entryLibrary(spring,sb.toString());
+						entryVoc(spring, strlib);
+					}
+				}
 			}
-			
-			
 		}
-		
-		
 	}
+		
 	
 	/**
 	 * 写字库
@@ -197,6 +178,25 @@ public class StrDispose {
 	}
 	
 	/**
+	 * 复读机，传入StrScene的主键进行新增或者更新
+	 * @param spring
+	 * @param sscn
+	 */
+	public void entryVocRepet(ApplicationContext spring, StrScene sscn) {
+		SntRepetMapper sntRepetMapper = spring.getBean(SntRepetMapper.class);
+		SntRepet sr = new SntRepet();
+		sr.setSs_id(sscn.getSs_id());
+		List<SntRepet> srL = sntRepetMapper.select(sr);
+		if(srL.isEmpty()) {
+			sr.setAppear(1);
+			sntRepetMapper.insert(sr);
+		}else {
+			sr = srL.get(srL.size()-1);
+			sr.setAppear(sr.getAppear()+1);
+		}
+	}
+	
+	/**
 	 * 拼字链
 	 * @param spring
 	 * @param node
@@ -224,6 +224,30 @@ public class StrDispose {
 			
 		}
 	
+	}
+	
+	public void entryLinkRepet(ApplicationContext spring, LinkNode node) {
+		StrLink slk = new StrLink();
+		slk.setItem_id(node.item);
+		slk.setPrev_id(node.prev);
+		slk.setNext_id(node.next);
+		
+		StrLinkMapper strLinkMapper = spring.getBean(StrLinkMapper.class);
+		List<StrLink> slinkL = strLinkMapper.select(slk);
+		slk = slinkL.get(slinkL.size()-1);
+		
+		CharRepetMapper charRepetMapper = spring.getBean(CharRepetMapper.class);
+		CharRepet cr = new CharRepet();
+		cr.setSlnk_id(slk.getSlnk_id());
+		List<CharRepet> crL = charRepetMapper.select(cr);
+		if(crL.isEmpty()) {
+			cr.setAppear(1);
+			charRepetMapper.insert(cr);
+		}else {
+			cr = crL.get(crL.size()-1);
+			cr.setAppear(cr.getAppear()+1);
+			charRepetMapper.update(cr);
+		}
 	}
 	
 	private static class LinkNode{
