@@ -16,7 +16,6 @@ import je.project.pojo.StrLibrary;
 
 public class MySql {
 	static Connection conn = null;
-	static ApplicationContext context = null; 
 	
 	public static void start() throws Exception {
 		Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
@@ -24,9 +23,7 @@ public class MySql {
 	}
 	
 	public static ApplicationContext startSpring() {
-		@SuppressWarnings("resource")
 		ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
-//		SqlSessionFactory ssf = (SqlSessionFactory) ctx.getBean("sqlSessionFactory");
 		return context;
 	}
 	

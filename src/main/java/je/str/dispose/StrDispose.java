@@ -1,11 +1,11 @@
 package je.str.dispose;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
+import je.jdbc.sql.MySpring;
 import je.jdbc.sql.MySql;
 import je.project.mapper.CharRepetMapper;
 import je.project.mapper.SntRepetMapper;
@@ -17,6 +17,8 @@ import je.project.pojo.SntRepet;
 import je.project.pojo.StrLibrary;
 import je.project.pojo.StrLink;
 import je.project.pojo.StrScene;
+import je.pub.intf.TextHandle;
+import je.pub.intf.impl.ChinesePunctuationTextHandle;
 
 /**
  * 
@@ -32,13 +34,17 @@ import je.project.pojo.StrScene;
  *
  */
 public class StrDispose {
-	private static String puna = "。？！，、；：「」『』‘’“”（）〔〕【】—…–．《》〈〉  ";
-	private String scn_id = "1";
+	private ApplicationContext spring;
+	private String scn_id;
+	private int size;
 	
+	public StrDispose() {
+		this.spring = MySpring.startSpring();
+	}
 	
 	@Test
 	public void test() {
-		entrance("马冬梅你妈妈找你");
+		entrance("1","马冬梅你妈妈找你");
 	}
 	
 	@Test
@@ -50,6 +56,11 @@ public class StrDispose {
 		List<StrLibrary> select = strLibraryMapper.select(strlib);
 		System.out.println(select.isEmpty());
 	}
+	
+	public void entrance(String scn_id,String str) {
+		// 默认中文标点处理
+		this.entrance(new ChinesePunctuationTextHandle(), scn_id, str);
+	}
 
 	/**
 	 * 
@@ -59,42 +70,37 @@ public class StrDispose {
 	 * 2.（）要单独处理一下
 	 * 
 	 */
-	public void entrance(String str) {
-		
-		char[] carr = str.toCharArray();
-		List<Character> sentence = new ArrayList<Character>();
-		List<List<Character>> section = new ArrayList<List<Character>>();
-		
-		for(int i = 0;i<carr.length;i++) {
-			sentence.add(carr[i]);
-			if(isChinesePunctuation(carr[i]) || i == carr.length-1) {
-				section.add(sentence);
-				if(i != carr.length-1) {
-					sentence = new ArrayList<Character>();
-				}
-			}
+	public void entrance(TextHandle textHandle,String scn_id,String str) {
+		this.scn_id = scn_id;
+		if(textHandle.handleSize()>0) {
+			this.size = textHandle.handleSize();
 		}
 		
-		ApplicationContext spring = MySql.startSpring();
-		
+		List<List<Character>> section = textHandle.handle(str);
+		int rule = 1;
 		for (List<Character> sent : section) {
-			String outPuna = outPuna(sent);
+			String noutPuna = noutPuna(sent);
 			StrSceneMapper ssMapper = spring.getBean(StrSceneMapper.class);
-			StrScene sscn = ssMapper.selectAlibrary(outPuna);
+			StrScene sscn = ssMapper.selectAlibrary(noutPuna); //查询记忆词库
 			
-			if(sscn != null) {
+			if(sscn != null) { // 复读机
 				LinkNode node = new LinkNode(null,null,null); 
 				for(int i = 0;i<sent.size();i++) {
 					// 取单字
 					StrLibraryMapper strLibraryMapper = spring.getBean(StrLibraryMapper.class);
 					StrLibrary strlib = strLibraryMapper.selectStr(String.valueOf(sent.get(i)));
-					node.putNode(strlib.getSl_id());
-					if(node.item != null) {
-						entryLinkRepet(spring, node);
-						if(i == sent.size()-1) {
-							node.putNode(null);
+					if(strlib != null) {
+						node.putNode(strlib.getSl_id());
+						if(node.item != null) {
 							entryLinkRepet(spring, node);
+							if(i == sent.size()-1) {
+								node.putNode(null);
+								entryLinkRepet(spring, node);
+							}
 						}
+					}else {
+						// TODO 万一词库没有呢
+						
 					}
 					StringBuilder sb = new StringBuilder();
 					for(int j = i;j<sent.size();j++) {
@@ -102,8 +108,18 @@ public class StrDispose {
 						sb.append(sent.get(j));
 						StrSceneMapper strSceneMapper = spring.getBean(StrSceneMapper.class);
 						StrScene sscen = strSceneMapper.selectAlibrary(sb.toString());
-						entryVocRepet(spring, sscen);
+						if(sscen != null) {
+							entryVocRepet(spring, sscen);
+						}else {
+							// 标点可能不一样
+							StrLibrary strb = entryLibrary(spring,sb.toString());
+							entryVoc(spring, strb);
+						}
+						if(++rule>size) {
+							break;
+						}
 					}
+					rule = 1;
 				}
 			}else {
 				LinkNode node = new LinkNode(null, null, null);
@@ -123,7 +139,11 @@ public class StrDispose {
 						sb.append(sent.get(j));
 						StrLibrary strlib = entryLibrary(spring,sb.toString());
 						entryVoc(spring, strlib);
+						if(++rule>size) {
+							break;
+						}
 					}
+					rule = 1;
 				}
 			}
 		}
@@ -239,20 +259,27 @@ public class StrDispose {
 		slk.setNext_id(node.next);
 		
 		StrLinkMapper strLinkMapper = spring.getBean(StrLinkMapper.class);
-		List<StrLink> slinkL = strLinkMapper.select(slk);
-		slk = slinkL.get(slinkL.size()-1);
+		List<StrLink> slinkL = strLinkMapper.select(slk); // strLink也许没有
 		
-		CharRepetMapper charRepetMapper = spring.getBean(CharRepetMapper.class);
-		CharRepet cr = new CharRepet();
-		cr.setSlnk_id(slk.getSlnk_id());
-		List<CharRepet> crL = charRepetMapper.select(cr);
-		if(crL.isEmpty()) {
-			cr.setAppear(1);
-			charRepetMapper.insert(cr);
+		// 字链为空，则往字链加新，否则添加复读机
+		if(slinkL.isEmpty()) {
+			slk.setScn_id(scn_id);
+			slk.setAppear(1);
+			strLinkMapper.insert(slk);
 		}else {
-			cr = crL.get(crL.size()-1);
-			cr.setAppear(cr.getAppear()+1);
-			charRepetMapper.update(cr);
+			slk = slinkL.get(slinkL.size()-1);
+			CharRepetMapper charRepetMapper = spring.getBean(CharRepetMapper.class);
+			CharRepet cr = new CharRepet();
+			cr.setSlnk_id(slk.getSlnk_id());
+			List<CharRepet> crL = charRepetMapper.select(cr);
+			if(crL.isEmpty()) {
+				cr.setAppear(1);
+				charRepetMapper.insert(cr);
+			}else {
+				cr = crL.get(crL.size()-1);
+				cr.setAppear(cr.getAppear()+1);
+				charRepetMapper.update(cr);
+			}
 		}
 	}
 	
@@ -274,15 +301,15 @@ public class StrDispose {
 		}
 	}
 	
-	public String outPuna(List<Character> list) {
-		StringBuffer sb = new StringBuffer();
-		for (Character c : list) {
-			if(!isChinesePunctuation(c)) {
-				sb.append(c);
-			}
-		}
-		return sb.toString();
-	}
+//	public String outPuna(List<Character> list) {
+//		StringBuffer sb = new StringBuffer();
+//		for (Character c : list) {
+//			if(!isChinesePunctuation(c)) {
+//				sb.append(c);
+//			}
+//		}
+//		return sb.toString();
+//	}
 	
 	public String noutPuna(List<Character> list) {
 		StringBuffer sb = new StringBuffer();
@@ -290,16 +317,6 @@ public class StrDispose {
 			sb.append(c);
 		}
 		return sb.toString();
-	}
-	
-	private static final boolean isChinesePunctuation(char c) {
-		char[] punlist = puna.toCharArray();
-		for (char d : punlist) {
-			if(d == c) {
-				return true;
-			}
-		}
-		return false;
 	}
 	
 }
